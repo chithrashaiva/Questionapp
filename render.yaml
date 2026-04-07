@@ -1,0 +1,19 @@
+services:
+  # FastAPI Backend
+  - type: web
+    name: quiz-backend
+    env: python
+    rootDir: backend
+    buildCommand: ./build.sh
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.14.3
+
+  # React Frontend
+  - type: static
+    name: quiz-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    publishDir: dist

@@ -9,6 +9,10 @@ export default function Quiz() {
   const [showScore, setShowScore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [correctAnswerStr, setCorrectAnswerStr] = useState(null);
+  const [username, setUsername] = useState('');
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
 
   useEffect(() => {
     fetch('http://localhost:8000/questions')
@@ -71,6 +75,36 @@ export default function Quiz() {
     setCorrectAnswerStr(null);
     setIsAnswersDisabled(false);
     setShowScore(false);
+    setShowLeaderboard(false);
+    setScoreSubmitted(false);
+    setUsername('');
+  };
+
+  const submitScore = () => {
+    if (!username.trim()) return;
+
+    fetch('http://localhost:8000/submit-score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: username,
+        score: score,
+        total: questions.length
+      })
+    })
+    .then(() => {
+      setScoreSubmitted(true);
+      fetchLeaderboard();
+    });
+  };
+
+  const fetchLeaderboard = () => {
+    fetch('http://localhost:8000/leaderboard')
+      .then(res => res.json())
+      .then(data => {
+        setLeaderboard(data);
+        setShowLeaderboard(true);
+      });
   };
 
   if (loading) {
@@ -92,20 +126,56 @@ export default function Quiz() {
   if (showScore) {
     return (
       <div className="card" style={{ animation: 'slideUp 0.6s ease-out' }}>
-        <h1 className="title">Quiz Complete!</h1>
-        <div className="score-container">
-          <div className="score-circle">
-            <span className="score-number">{score}</span>
-            <span className="score-label">out of {questions.length}</span>
+        <h1 className="title">{showLeaderboard ? 'Leaderboard' : 'Quiz Complete!'}</h1>
+        
+        {!showLeaderboard ? (
+          <div className="score-container">
+            <div className="score-circle">
+              <span className="score-number">{score}</span>
+              <span className="score-label">out of {questions.length}</span>
+            </div>
+            
+            {!scoreSubmitted && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <input 
+                  type="text" 
+                  placeholder="Enter your name" 
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="input-field"
+                  style={{ width: '100%', marginBottom: '1rem' }}
+                />
+                <button className="btn-primary" onClick={submitScore} disabled={!username.trim()}>
+                  Submit Score
+                </button>
+              </div>
+            )}
+            
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+              <button className="btn-secondary" onClick={fetchLeaderboard}>
+                View Leaderboard
+              </button>
+              <button className="btn-outline" onClick={restartQuiz}>
+                Try Again
+              </button>
+            </div>
           </div>
-          <p style={{ marginBottom: '2rem', fontSize: '1.2rem', color: 'var(--text-muted)' }}>
-            {score === questions.length ? 'Perfect Score! 🏆' : 
-             score >= questions.length / 2 ? 'Good Job! 👍' : 'Keep Learning! 📚'}
-          </p>
-          <button className="btn-primary" onClick={restartQuiz}>
-            Play Again
-          </button>
-        </div>
+        ) : (
+          <div className="leaderboard-container">
+            <div className="leaderboard-list">
+              {leaderboard.map((entry, i) => (
+                <div key={i} className="leaderboard-item">
+                  <span className="rank">#{i + 1}</span>
+                  <span className="name">{entry.username}</span>
+                  <span className="points">{entry.score} / {entry.total}</span>
+                </div>
+              ))}
+            </div>
+            <button className="btn-primary" onClick={restartQuiz} style={{ marginTop: '2rem' }}>
+              Back to Start
+            </button>
+          </div>
+        )}
       </div>
     );
   }
