@@ -15,7 +15,7 @@ export default function Quiz() {
   const [scoreSubmitted, setScoreSubmitted] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:8000/questions')
+    fetch('https://questionapp-qyyj.onrender.com/questions')
       .then(res => res.json())
       .then(data => {
         setQuestions(data);
@@ -31,7 +31,7 @@ export default function Quiz() {
     setSelectedOption(option);
     setIsAnswersDisabled(true);
     
-    fetch('http://localhost:8000/submit', {
+    fetch('https://questionapp-qyyj.onrender.com/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -83,7 +83,7 @@ export default function Quiz() {
   const submitScore = () => {
     if (!username.trim()) return;
 
-    fetch('http://localhost:8000/submit-score', {
+    fetch('https://questionapp-qyyj.onrender.com/submit-score', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -99,7 +99,7 @@ export default function Quiz() {
   };
 
   const fetchLeaderboard = () => {
-    fetch('http://localhost:8000/leaderboard')
+    fetch('https://questionapp-qyyj.onrender.com/leaderboard')
       .then(res => res.json())
       .then(data => {
         setLeaderboard(data);
